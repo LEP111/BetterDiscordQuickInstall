@@ -4,7 +4,7 @@ of your choice.
 Its written completely in python.
 # What it does
 It downloads BetterDiscord from the official [GitHub](https://github.com/BetterDiscord/BetterDiscord),
-installs the needed resources, builds it and finally injects it.\
+installs the needed resources, builds it and finally injects it.
 
 As a nice to have, you can activate the copy icon funktion to set a custom Discord icon.
 It will automatically reload the cache (the screen will most likely turn black for a sec).
@@ -33,7 +33,7 @@ git or bun installed as the release contains everything in it, so nothing will b
 That's why it's relatively large for a script of this size.
 
 # Platforms
-As of now, I only designed it for **Windows**. I don't know if it works on linux or MaxOS
+As of now, I only designed it for **Windows**. I don't know if it works on linux or MaxOS.
 
 # I'm not affiliated with Discord or BetterDiscord
 Use this at your own risk!
