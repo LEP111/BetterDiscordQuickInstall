@@ -13,21 +13,17 @@ import sys
 
 
 def setup_environment():
-    """Richtet die Pfade für die mitgelieferten Tools (Git/Bun) ein."""
-    if hasattr(sys, '_MEIPASS'):
+    if hasattr(sys, '_MEIPASS'):    # Pfad wenn .exe
         # Wenn als EXE ausgeführt, zeigt dies auf den temporären PyInstaller-Ordner
         base_path = sys._MEIPASS
     else:
         # Im normalen PyCharm/Script-Modus
         base_path = os.path.abspath(".")
-
-    # Pfade zu deinen mitgelieferten Binärdateien (aus deinem --add-data Befehl)
-    # WICHTIG: Git braucht oft den internen /bin Ordner für Befehle wie 'sh'
+    # Pfade
     git_bin_path = os.path.join(base_path, "bin", "git", "bin")
     git_cmd_path = os.path.join(base_path, "bin", "git", "cmd")
     bun_bin_path = os.path.join(base_path, "bin", "bun")
 
-    # Wir fügen diese Pfade ganz vorne in den System-PATH ein
     new_path = f"{git_bin_path};{git_cmd_path};{bun_bin_path};" + os.environ["PATH"]
     os.environ["PATH"] = new_path
 
@@ -89,10 +85,9 @@ def get_latest_version():
 
     if response.status_code == 200:
         data = response.json()
-        # 'tag_name' ist meist die Versionsnummer (z.B. v1.2.3)
         return data.get("tag_name")
     else:
-        return "Kein Release gefunden oder Fehler bei der Abfrage."
+        return "No release found."
 
 
 def get_current_version():
