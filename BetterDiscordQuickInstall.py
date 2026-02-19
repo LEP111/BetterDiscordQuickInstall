@@ -10,6 +10,8 @@ import requests
 import json
 import stat
 import sys
+import zipfile
+import io
 
 
 def setup_environment():
@@ -20,12 +22,35 @@ def setup_environment():
         # Im normalen PyCharm/Script-Modus
         base_path = os.path.abspath(".")
     # Pfade
-    git_bin_path = os.path.join(base_path, "bin", "git", "bin")
-    git_cmd_path = os.path.join(base_path, "bin", "git", "cmd")
     bun_bin_path = os.path.join(base_path, "bin", "bun")
 
-    new_path = f"{git_bin_path};{git_cmd_path};{bun_bin_path};" + os.environ["PATH"]
+    new_path = f"{bun_bin_path};" + os.environ["PATH"]
     os.environ["PATH"] = new_path
+
+
+def download_and_setup_bd(dir, zip_url):
+    extract_path = dir
+
+    print("Downloading BetterDiscord source...")
+    r = requests.get(zip_url)
+
+    if r.status_code == 200:
+        with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+            z.extractall(extract_path)
+
+        # GitHubs Standard-Ordnername finden (z.B. BetterDiscord-main)
+        downloaded_folder = os.path.join(extract_path, "BetterDiscord-main")
+        target_folder = os.path.join(extract_path, "BetterDiscord")
+
+        # Falls der Zielordner schon existiert, löschen
+        if os.path.exists(target_folder):
+            shutil.rmtree(target_folder, onerror=remove_readonly)
+
+        # Den Ordner von "BetterDiscord-main" in "BetterDiscord" umbenennen
+        os.rename(downloaded_folder, target_folder)
+        print("Setup complete. Folder is ready for Bun.")
+    else:
+        print("Download failed!")
 
 
 def remove_readonly(func, path, _):
@@ -118,6 +143,7 @@ except Exception as e:
 
 auto_start_dc = parser["DEFAULT"].getboolean("auto_start_dc")
 copy_custom_ico = parser["DEFAULT"].getboolean("copy_custom_ico")
+bd_url = parser["DEFAULT"]["bd_url"]
 ico_dir = parser["DEFAULT"]["ico_dir"]
 program_name = parser["DEFAULT"]["program_name"]
 max_kill_tries = parser["DEFAULT"].getint("max_kill_tries")
@@ -153,13 +179,14 @@ except Exception as e:
 
 if latest_version != current_version:
     try:
-        shutil.rmtree(betterdiscord_dir, onerror=remove_readonly)
-    except:
-        pass
-    subprocess.run(commands[0], cwd=discord_dir, check=True)  # Clone im Standard Ordner
+        download_and_setup_bd(discord_dir, bd_url)
+    except Exception as e:
+        print(e)
+        print("Failed to download form GitHub")
+        wait()
 
 
-for cmd in commands[1:3]:
+for cmd in commands[0:2]:
     subprocess.run(cmd, cwd=betterdiscord_dir, check=True)
     time.sleep(1)
 
@@ -188,7 +215,7 @@ if copy_custom_ico:
 
 
 if not is_program_running(program_name):
-    subprocess.run(commands[3], cwd=betterdiscord_dir, check=True)
+    subprocess.run(commands[2], cwd=betterdiscord_dir, check=True)
     print("BetterDiscord installed successfully")
     if auto_start_dc:
         subprocess.Popen(discord_dir + r"\Update.exe --processStart " + program_name)
