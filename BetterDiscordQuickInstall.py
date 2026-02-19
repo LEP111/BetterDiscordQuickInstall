@@ -149,9 +149,10 @@ program_name = parser["DEFAULT"]["program_name"]
 max_kill_tries = parser["DEFAULT"].getint("max_kill_tries")
 
 betterdiscord_dir = discord_dir + r"\BetterDiscord"
+current_version = ""
+latest_version = ""
 
 commands = [
-    ["git", "clone", "--single-branch", "-b", "main", "https://github.com/BetterDiscord/BetterDiscord.git"],
     ["bun", "install"],
     ["bun", "run", "build"],
     ["bun", "inject"]
