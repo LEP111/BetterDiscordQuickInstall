@@ -9,10 +9,30 @@ import msvcrt
 import requests
 import json
 import stat
+import sys
+
+
+def setup_environment():
+    """Richtet die Pfade für die mitgelieferten Tools (Git/Bun) ein."""
+    if hasattr(sys, '_MEIPASS'):
+        # Wenn als EXE ausgeführt, zeigt dies auf den temporären PyInstaller-Ordner
+        base_path = sys._MEIPASS
+    else:
+        # Im normalen PyCharm/Script-Modus
+        base_path = os.path.abspath(".")
+
+    # Pfade zu deinen mitgelieferten Binärdateien (aus deinem --add-data Befehl)
+    # WICHTIG: Git braucht oft den internen /bin Ordner für Befehle wie 'sh'
+    git_bin_path = os.path.join(base_path, "bin", "git", "bin")
+    git_cmd_path = os.path.join(base_path, "bin", "git", "cmd")
+    bun_bin_path = os.path.join(base_path, "bin", "bun")
+
+    # Wir fügen diese Pfade ganz vorne in den System-PATH ein
+    new_path = f"{git_bin_path};{git_cmd_path};{bun_bin_path};" + os.environ["PATH"]
+    os.environ["PATH"] = new_path
 
 
 def remove_readonly(func, path, _):
-    """Löscht das Read-only-Attribut und versucht es erneut."""
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
@@ -81,13 +101,28 @@ def get_current_version():
         return data.get('version')
 
 
+setup_environment()
 parser = configparser.ConfigParser()
 
-parser.read(r"config.cfg")
+if hasattr(sys, '_MEIPASS'):
+    application_path = os.path.dirname(sys.executable)
+else:
+    application_path = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(application_path, "config.cfg")
+
+if not os.path.exists(config_path):
+    print("Failed to read config.cfg")
+    wait()
+try:
+    parser.read(config_path, encoding='utf-8')
+    discord_dir = parser["DEFAULT"]["discord_dir"]
+except Exception as e:
+    print(e)
+    print("Failed to read config.cfg")
+    wait()
 
 auto_start_dc = parser["DEFAULT"].getboolean("auto_start_dc")
 copy_custom_ico = parser["DEFAULT"].getboolean("copy_custom_ico")
-discord_dir = parser["DEFAULT"]["discord_dir"]
 ico_dir = parser["DEFAULT"]["ico_dir"]
 program_name = parser["DEFAULT"]["program_name"]
 max_kill_tries = parser["DEFAULT"].getint("max_kill_tries")
